@@ -24,6 +24,16 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
+    // Check if Claude CLI is available
+    if !is_claude_available() {
+        eprintln!("Error: 'claude' CLI is not installed or not in your PATH");
+        eprintln!("\nTo install Claude CLI, visit:");
+        eprintln!("  https://github.com/anthropics/anthropic-cli");
+        eprintln!("\nOr install via pip:");
+        eprintln!("  pip install anthropic-cli");
+        std::process::exit(1);
+    }
+
     // Validate PDF file exists
     if !args.pdf.exists() {
         eprintln!("Error: PDF file '{}' does not exist", args.pdf.display());
@@ -70,6 +80,16 @@ fn main() {
             std::process::exit(1);
         }
     }
+}
+
+fn is_claude_available() -> bool {
+    Command::new("claude")
+        .arg("--version")
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|status| status.success())
+        .unwrap_or(false)
 }
 
 fn call_claude_with_pdf(pdf_path: &PathBuf, prompt: &str) -> Result<String, String> {
